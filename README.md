@@ -4,6 +4,7 @@
 - Лица собак с разметкой и исследованием! https://github.com/GuillaumeMougeot/DogFaceNet
     - Исследование https://link.springer.com/chapter/10.1007/978-3-030-29894-4_34
 - Лица кошек с разметкой! https://www.kaggle.com/datasets/crawford/cat-dataset
+    - Говорят что улучшили его здесь немного https://github.com/zylamarek/cat-dataset используют для [cat face landmark predictor](https://github.com/zylamarek/frederic)
 - Собаки-Кошки с бб на лица и контур всего тела https://www.robots.ox.ac.uk/~vgg/data/pets/
 
 - Номсы: https://www.datatang.ai/datasets/1051 (ждём ответа)
@@ -22,3 +23,6 @@
 - https://medium.com/analytics-vidhya/building-a-dog-search-engine-with-facenet-65d1ae79dd8a
 - https://www.researchgate.net/publication/282790234_Where_is_my_puppy_Retrieving_lost_dogs_by_facial_features
 - https://ieeexplore.ieee.org/document/8833763
+
+## Либы
+- Deep-learning cat face landmark predictor https://github.com/zylamarek/frederic
