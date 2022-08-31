@@ -26,3 +26,7 @@
 
 ## Либы/Переиспользовать
 - Deep-learning cat face landmark predictor https://github.com/zylamarek/frederic
+
+## На потом
+- Оптимизация фоток животных для увеличения шансов на "усыновление" https://www.adoptimize.co/ (какие то нереальные коммерческие показатели если верить сайту)
+    - Выбор лучшей фотки животного из видео https://towardsdatascience.com/using-computer-vision-to-find-the-best-cat-photo-from-a-video-fd11c43596b8
