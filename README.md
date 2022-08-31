@@ -24,5 +24,5 @@
 - https://www.researchgate.net/publication/282790234_Where_is_my_puppy_Retrieving_lost_dogs_by_facial_features
 - https://ieeexplore.ieee.org/document/8833763
 
-## Либы
+## Либы/Переиспользовать
 - Deep-learning cat face landmark predictor https://github.com/zylamarek/frederic
