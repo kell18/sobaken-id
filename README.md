@@ -24,7 +24,3 @@
 - https://medium.com/analytics-vidhya/building-a-dog-search-engine-with-facenet-65d1ae79dd8a
 - https://www.researchgate.net/publication/282790234_Where_is_my_puppy_Retrieving_lost_dogs_by_facial_features
 - https://ieeexplore.ieee.org/document/8833763
-
-## Другое
-- Оптимизация фоток животных для увеличения шансов на "усыновление" https://www.adoptimize.co/ (какие то нереальные коммерческие показатели если верить сайту)
-    - Выбор лучшей фотки животного из видео https://towardsdatascience.com/using-computer-vision-to-find-the-best-cat-photo-from-a-video-fd11c43596b8
