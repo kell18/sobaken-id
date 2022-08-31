@@ -21,3 +21,4 @@
 ## Исследования
 - https://medium.com/analytics-vidhya/building-a-dog-search-engine-with-facenet-65d1ae79dd8a
 - https://www.researchgate.net/publication/282790234_Where_is_my_puppy_Retrieving_lost_dogs_by_facial_features
+- https://ieeexplore.ieee.org/document/8833763
