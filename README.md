@@ -6,7 +6,7 @@
 - Лица кошек с разметкой! https://www.kaggle.com/datasets/crawford/cat-dataset
 - Собаки-Кошки с бб на лица и контур всего тела https://www.robots.ox.ac.uk/~vgg/data/pets/
 
-- Номсы: https://www.datatang.ai/datasets/1051
+- Номсы: https://www.datatang.ai/datasets/1051 (ждём ответа)
 - Породы собак (в разметке есть бб, видимо на собаку в кадре или на лицо, надо уточнить): http://vision.stanford.edu/aditya86/ImageNetDogs/
     - Background paper http://people.csail.mit.edu/khosla/papers/fgvc2011.pdf
     - New papers https://link.springer.com/content/pdf/10.1007/s41095-020-0184-6.pdf
