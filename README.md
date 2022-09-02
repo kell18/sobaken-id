@@ -8,6 +8,7 @@
 - Собаки-Кошки с бб на лица и контур всего тела https://www.robots.ox.ac.uk/~vgg/data/pets/
 - Носы собак: https://www.datatang.ai/datasets/1051 (ждём ответа)
 - Deep-learning cat face landmark predictor https://github.com/zylamarek/frederic
+- Собаки по породам с бб на лица и тело https://cg.cs.tsinghua.edu.cn/ThuDogs/
   
 ## Датасеты по другим фичам
 - Породы собак (в разметке есть бб, видимо на собаку в кадре или на лицо, надо уточнить): http://vision.stanford.edu/aditya86/ImageNetDogs/
