@@ -1,27 +1,39 @@
 # Sobaken-ID
+Цель проекта попробовать сделать Computer Vision сервис для поиска пропавших животных на просторах интернета.  
 
-## Датасеты по фичам лица
-- Лица собак с разметкой и исследованием! https://github.com/GuillaumeMougeot/DogFaceNet
-    - Исследование https://link.springer.com/chapter/10.1007/978-3-030-29894-4_34
-- Лица кошек с разметкой! https://www.kaggle.com/datasets/crawford/cat-dataset
-    - Говорят что улучшили его здесь немного https://github.com/zylamarek/cat-dataset используют для [cat face landmark predictor](https://github.com/zylamarek/frederic)
-- Собаки-Кошки с бб на лица и контур всего тела https://www.robots.ox.ac.uk/~vgg/data/pets/
-- Носы собак: https://www.datatang.ai/datasets/1051 (ждём ответа)
-- Deep-learning cat face landmark predictor https://github.com/zylamarek/frederic
-- Собаки по породам с бб на лица и тело https://cg.cs.tsinghua.edu.cn/ThuDogs/
-  
-## Датасеты по другим фичам
-- Породы собак (в разметке есть бб, видимо на собаку в кадре или на лицо, надо уточнить): http://vision.stanford.edu/aditya86/ImageNetDogs/
-    - Background paper http://people.csail.mit.edu/khosla/papers/fgvc2011.pdf
-    - New papers https://link.springer.com/content/pdf/10.1007/s41095-020-0184-6.pdf
+## Проблема
+- На простом человеческом: "поиск животных по отличительным особенностям: размер, цвет, паттерн на шерсти, отрезано ухо, сломан хвост, ошейник и так далее. С поправкой на погоду/освещение/состояние животного/грязь на шерсти/лишние объекты на фотке."
+- С технической точки зрения, так как это поиск то возможно подойдёт word2vec подход (или точнее img2vec). То есть, например, строим базу векторов доступных животных в БД (id животного -> вектор из последнего слоя модели + доп фичи) и для каждого нового животного генерируем тот же самый вектор от той же модели и ищем по базе.
 
-- Cats vs Dogs:
-    - https://www.kaggle.com/c/dogs-vs-cats/data
-        - https://machinelearningmastery.com/how-to-develop-a-convolutional-neural-network-to-classify-photos-of-dogs-and-cats/
-    - https://www.kaggle.com/datasets/andrewmvd/animal-faces
+- Аналог в США https://petcolove.org/lost, что-то в этом же духе в Китае https://www.thetimes.com/world/article/chinese-dogs-take-id-cards-on-the-nose-2zh3r0b75
+
+### Особенности:
+1. Ложно отрицательные результаты критичны. Плохо если из выборки пропадает целевое животное. С другой стороны если мы выдаём больше ложно положительных то человек может сам доискать животное (в разумных количествах и отсортированных по уменьшению схожести).
+2. На первых этапах важнее сфокусироваться на собаках - их намного сложнее пристраивать, лечить, передерживать и так далее.
+
+### Что хотелось бы увидеть на выходе
+- 1 этап - понять какая модель будет лучше работать и какая разметка нужна для обучения
+- 2 этап - разметка или поиск данных для обучения (тут я помогу)
+- 3 этап - прототип рабочей модели с исходным кодом которая за разумное время может генерировать вектор
+- 4 этап - модель обученная на всём доступном датасете (тут так же могу помочь, в том числе с инвестициями в сервера для обучения)
+
+## Данные
+### Размеченные датасеты что я нашёл в открытом доступе:
+- https://www.robots.ox.ac.uk/~vgg/data/pets/
+- https://cg.cs.tsinghua.edu.cn/ThuDogs/
+- Доп инфу собрал [тут](more-on-data.md)
+
+### Неразмеченные данные - максимально приближенные к реальности
+- Любые паблики с потеряшками в ВК, например [vk.com/agatalifenews](vk.com/agatalifenews) - могу спарсить сырых данных, скажите если нужно
+- Спец сайты для поиска животных вроде [pet911.ru](pet911.ru) (кстати они готовы внедрить такую модель)
+
+Я помогу разметить данные вручную как станет понятно что и как именно размечать.
 
 
-## Исследования
-- https://medium.com/analytics-vidhya/building-a-dog-search-engine-with-facenet-65d1ae79dd8a
-- https://www.researchgate.net/publication/282790234_Where_is_my_puppy_Retrieving_lost_dogs_by_facial_features
-- https://ieeexplore.ieee.org/document/8833763
+# Дальнейшая интеграция
+- У меня есть контакт с pet911.ru - они готовы внедрить
+- Так же есть идея сделать интеграцию для поиска через приложения ВК для тех же пабликов потеряшек
+- Пытаюсь достучаться до https://teddyfood.com/ чтобы так же интегрироваться с ними
+
+# Контакты
+Мой Телеграм @kella18
