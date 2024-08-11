@@ -5,18 +5,37 @@ import time
 import os
 from scraping.response_parser import download_image_and_update_index
 
+# Next steps:
+# - выгрузить чистые фотки из agatalifenews: либо уменьшить набор допустимых К-В либо уменьшить макс итерации
+# - выгрузить других пабликов
+# - написать README для данных
+# + отдельно обработать сценарий где type=link
+# + выкачивать самое высокое качество
+# + сохранять все параметры запроса в лок. файл чтобы можно было просто перезапускать откуда остановлися
+# + вытянуть фотки в одну папку, но с индексным файлом
+# - пропустить несколько пабликов через Scrapper
+
 service_token = os.environ['VK_SERVICE_TOKEN']
 owner_id = '-92601599'  # 'agatalifenews'
 
-imgs_upload_path_w_trail_slash = '/Users/albert.bikeev/Disk/nko/sobaken-id/scraping/resources/downloaded_imgs/'
-index_file_full_path = '/Users/albert.bikeev/Disk/nko/sobaken-id/scraping/resources/index_with_some_duplicates.json'
+imgs_upload_path_w_trail_slash = '/Users/albert.bikeev/Disk/nko/sobaken-id/scraping/resources/downloaded/imgs_agatalifenews/'
+index_file_full_path = '/Users/albert.bikeev/Disk/nko/sobaken-id/scraping/resources/downloaded/index_agatalifenews.json'
 scrape_params_file_full_path = '/Users/albert.bikeev/Disk/nko/sobaken-id/scraping/resources/parameters.json'
 
+white_list_kws = (
+    'собака', 'кошка', 'кот', 'котик', 'котёнок', 'котята', 'кутята', 'пёс', 'пес', 'пёсель', 'песель', 'собакен',
+    'животное', 'кличка', 'потерялось', 'потярелос', 'потирялось', 'нашлось', 'найдено', 'найденно', 'найденна',
+    'найдена', 'пропала', 'любимая', 'любимый', 'вознаграждение', 'убежала', 'украли', 'поймали', 'ошейник', 'ощейник',
+    'отзовись', 'хозяин', 'бросили', 'собаку', 'нашли', 'потеряли', 'потерялся', 'убежал', 'убежала', 'кошку', 'пса',
+    'намордник', 'малыш', 'малышь', 'телефон', 'для', 'связи', '+7', 'заголовок', 'пёселя', 'песеля', 'котьку', 'кош',
+    'кошь', 'попугай', 'попугая', 'попуг', 'попуга', 'черепаху', 'черепаха', 'черепашки', 'черепашка', 'животинка',
+    'порода', 'кабель', 'кобель', 'сука', 'самка', 'самец', 'чихуа', 'хуа', 'породы', 'породистый', 'красивый'
+)
 posts_hashes_to_ignore = ['lWKtHAgxvI63OoD8fw']
 
 sleep_sec_between_requests = 0.7
 batch_size = 100  # num posts in each request to fetch (max = 100)
-num_iterations = 30
+num_iterations = 50
 
 default_parameters = {"last_scrapped_offset": 0, "last_error": None}
 
@@ -35,12 +54,6 @@ def save_latest_scrape_params_to_file(scrape_params, scrape_params_file_path):
     with open(scrape_params_file_path, 'w') as f:
         json.dump(scrape_params, f)
 
-
-# Next steps:
-# + Отдельно обработать сценарий где type=link
-# + выкачивать самое высокое качество
-# + сохранять все параметры запроса в лок. файл чтобы можно было просто перезапускать откуда остановлися
-# + вытянуть фотки в одну папку, но с индексным файлом
 
 if __name__ == '__main__':
     scrape_params = get_latest_scrape_params_from_file(scrape_params_file_full_path)
@@ -68,7 +81,7 @@ if __name__ == '__main__':
             response_json = response.json()
             if 'response' in response_json and 'items' in response_json['response']:
                 download_image_and_update_index(posts_hashes_to_ignore, imgs_upload_path_w_trail_slash,
-                                                index_file_full_path, response_json['response'])
+                                                index_file_full_path, response_json['response'], white_list_kws)
             else:
                 raise Exception('Unknown VK response: ' + str(response_json))
 
