@@ -36,6 +36,7 @@ def get_post_full_link(the_owner_id, post_id):
 def string_contains_any_from_list(string, any_to_contain):
     return any(to_contain in string for to_contain in any_to_contain)
 
+attachment_types_to_skip = ['doc', 'video', 'link', 'audio']
 
 def download_image_and_update_index(post_hashes_to_ignore, imgs_upload_path_w_trail_slash, index_file_full_path,
                                     vk_response, white_list_kws):
@@ -60,7 +61,7 @@ def download_image_and_update_index(post_hashes_to_ignore, imgs_upload_path_w_tr
                 # Update index file:
                 index_rec = construct_index_record(post, biggest_image)
                 append_index_record_to_file(index_rec, index_file_full_path)
-            elif attachment['type'] == 'video' or attachment['type'] == 'link' or attachment['type'] == 'audio':
+            elif attachment['type'] in attachment_types_to_skip:
                 print(f'Skipping link/video attachment with for post hash {post["hash"]}')
             else:
                 raise Exception(
