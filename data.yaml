@@ -1,0 +1,4 @@
+train: dog_dataset/train_images.txt
+val: dog_dataset/val_images.txt
+names:
+  0: dog
