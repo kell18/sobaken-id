@@ -15,6 +15,9 @@
 https://github.com/users/kell18/projects/1/views/1
 
 ## Данные
+### Сырые данные собранные из VK
+- [vk.com/dom_lapkin](https://disk.yandex.ru/d/wFBXsKolqyFRSg)
+
 ### Размеченные датасеты что я нашёл в открытом доступе:
 - https://www.robots.ox.ac.uk/~vgg/data/pets/
 - https://cg.cs.tsinghua.edu.cn/ThuDogs/
