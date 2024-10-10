@@ -16,7 +16,7 @@ https://github.com/users/kell18/projects/1/views/1
 
 ## Данные
 ### Сырые данные собранные из VK
-- [vk.com/dom_lapkin](https://disk.yandex.ru/d/wFBXsKolqyFRSg)
+- [vk.com/dom_lapkin](https://disk.yandex.ru/d/wFBXsKolqyFRSg), каждый архив содержит индексный файл со всей необходимой информацией, [пример](https://github.com/kell18/sobaken-id/blob/master/scraping/resources/example-index.json)
 
 ### Размеченные датасеты что я нашёл в открытом доступе:
 - https://www.robots.ox.ac.uk/~vgg/data/pets/
