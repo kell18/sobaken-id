@@ -1,8 +1,9 @@
-from ultralytics import YOLO
-import cv2
-import os
-import numpy as np
 import json
+import numpy as np
+import os
+import cv2
+from ultralytics import YOLO
+from pycocotools import mask as mask_util
 
 # Load YOLO segmentation model (yolov8n-seg.pt)
 model = YOLO('yolov8n-seg.pt')
@@ -12,11 +13,11 @@ image_folder = os.path.join('data', 'filtered_imgs')
 save_folder = os.path.join('data', 'segmented_imgs')
 annotation_file = os.path.join('data', 'annotations_coco.json')
 
-# Create folder for saving images if it doesn't exist
+# Ensure the save folder exists
 if not os.path.exists(save_folder):
     os.makedirs(save_folder)
 
-# List to store COCO-style annotations
+# Initialize annotations dictionary in COCO format
 annotations = {
     "images": [],
     "annotations": [],
@@ -28,7 +29,15 @@ annotations = {
 
 annotation_id = 1
 
-# Iterate through all images in the folder
+# Function to convert numpy array or bytes to serializable format
+def convert_to_serializable(obj):
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()  # Convert numpy array to a Python list
+    if isinstance(obj, bytes):
+        return obj.decode()  # Decode bytes to string
+    raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
+
+# Process each image in the folder
 for image_id, image_name in enumerate(os.listdir(image_folder)):
     # Full path to the image
     image_path = os.path.join(image_folder, image_name)
@@ -36,11 +45,11 @@ for image_id, image_name in enumerate(os.listdir(image_folder)):
     # Run the image through the model
     results = model(image_path)
 
-    # Load the image using OpenCV
+    # Load the image with OpenCV
     img = cv2.imread(image_path)
     height, width, _ = img.shape
 
-    # Add image info to the annotations
+    # Add image info to the COCO-style annotations
     annotations["images"].append({
         "id": image_id,
         "file_name": image_name,
@@ -48,60 +57,54 @@ for image_id, image_name in enumerate(os.listdir(image_folder)):
         "width": width
     })
 
-    # Iterate through the predictions for each object in the image
+    # Loop through each detected object
     for result in results:
-        if result.masks:  # Check if masks are predicted
+        if result.masks:  # Check if masks exist in the predictions
             for mask, box in zip(result.masks.data, result.boxes):
-                class_id = int(box.cls[0])  # Get the object class
+                class_id = int(box.cls[0])  # Get the class ID
 
-                # Check class (16 - dog, 17 - cat)
+                # Check if it's a dog or cat (16 for dog, 17 for cat)
                 if class_id in [16, 17]:
-                    # Assign category (1 - dog, 2 - cat)
+                    # Set the category ID (1 for dog, 2 for cat)
                     category_id = 1 if class_id == 16 else 2
 
-                    # Mask is already a binary image (array)
+                    # Convert mask to numpy array
                     mask = mask.cpu().numpy()
 
-                    # Resize the mask to fit the image dimensions
+                    # Resize mask to the image size
                     mask_resized = cv2.resize(mask, (width, height))
 
-                    # Apply the mask to the image
-                    img[mask_resized > 0.5] = [0, 255, 0]  # Green for segmented areas
+                    # Apply the mask to the image (visualization purposes)
+                    img[mask_resized > 0.5] = [0, 255, 0]  # Green color for segmented areas
 
-                    # Get contours of the segmented area
-                    contours, _ = cv2.findContours((mask_resized > 0.5).astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-                    segmentation = []
+                    # Use pycocotools to encode the mask into RLE format
+                    rle = mask_util.encode(np.asfortranarray((mask_resized > 0.5).astype(np.uint8)))
 
-                    for contour in contours:
-                        contour = contour.flatten().tolist()  # Convert to list
-                        if len(contour) > 4:  # Segmentation must have at least 3 points
-                            segmentation.append(contour)
-
-                    # Create bounding box from the coordinates
+                    # Get bounding box coordinates and convert to COCO format
                     x1, y1, x2, y2 = map(int, box.xyxy[0])  # Bounding box coordinates
                     bbox = [x1, y1, x2 - x1, y2 - y1]  # COCO format: [x_min, y_min, width, height]
 
-                    # Convert values to standard float type
-                    area = float(np.sum(mask_resized))  # Segmentation area
+                    # Convert mask area to a serializable float value
+                    area = float(np.sum(mask_resized))
 
-                    # Add annotation in COCO format
+                    # Add the annotation in COCO format
                     annotations["annotations"].append({
                         "id": annotation_id,
                         "image_id": image_id,
                         "category_id": category_id,
-                        "segmentation": segmentation,
+                        "segmentation": rle,  # Store the RLE-encoded mask
                         "bbox": bbox,
-                        "area": area,  # Use the converted area
-                        "iscrowd": 0  # Not a "crowd" object
+                        "area": area,
+                        "iscrowd": 0  # Set 'iscrowd' to 0 for individual objects
                     })
                     annotation_id += 1
 
-    # Save segmented images with masks applied
+    # Save the image with the applied mask
     save_path = os.path.join(save_folder, image_name)
     cv2.imwrite(save_path, img)
 
-# Save the annotations to a JSON file
+# Save the COCO annotations to a JSON file
 with open(annotation_file, 'w') as f:
-    json.dump(annotations, f)
+    json.dump(annotations, f, default=convert_to_serializable)
 
-print("Segmentation completed and annotations saved.")
+print("Segmentation completed and annotations saved in COCO format")
