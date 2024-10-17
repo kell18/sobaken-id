@@ -4,12 +4,17 @@ version = "0.1.0"
 description = ""
 authors = ["Albert Bikeev <albert.bikeev@gmail.com>"]
 readme = "README.md"
-packages = [{ include = "scraping" }]
+packages = [{ include = "scraping" }, { include = "segmentation" }]
 package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.12"
 requests = "^2.32.3"
+segment-anything = {git = "https://github.com/facebookresearch/segment-anything.git"}
+ultralytics = "^8.3.15"
+pycocotools = "^2.0.8"
+pixellib = "^0.7.1"
+pillow = "9.5.0"
 
 [build-system]
 requires = ["poetry-core"]
