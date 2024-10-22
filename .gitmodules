@@ -1,0 +1,3 @@
+[submodule "re-identification/deep-person-reid"]
+	path = re-identification/deep-person-reid
+	url = https://github.com/KaiyangZhou/deep-person-reid.git

@@ -4,7 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["Albert Bikeev <albert.bikeev@gmail.com>"]
 readme = "README.md"
-packages = [{ include = "scraping" }, { include = "segmentation" }]
+packages = [{ include = "scraping" }, { include = "segmentation" }, { include = "re-identification"}, { include = "segmentation"}]
 package-mode = false
 
 [tool.poetry.dependencies]
@@ -15,6 +15,26 @@ ultralytics = "^8.3.15"
 pycocotools = "^2.0.8"
 pixellib = "^0.7.1"
 pillow = "9.5.0"
+dvc = "^3.55.2"
+# Deep-person-reid specific deps:
+numpy = "^2.1.2"
+cython = "^3.0.11"
+h5py = "^3.12.1"
+six = "^1.16.0"
+scipy = "^1.14.1"
+opencv-python = "^4.10.0.84"
+matplotlib = "^3.9.2"
+tb-nightly = "^2.19.0a20241020"
+future = "^1.0.0"
+yacs = "^0.1.8"
+gdown = "^5.2.0"
+flake8 = "^7.1.1"
+yapf = "^0.40.2"
+isort = "4.3.21"
+imageio = "^2.36.0"
+chardet = "^5.2.0"
+torch = {version = "^2.5.0", python = "^3.7", platform = "linux"}
+# /end Deep-person-reid specific deps
 
 [build-system]
 requires = ["poetry-core"]
