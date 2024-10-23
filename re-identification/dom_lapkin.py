@@ -47,6 +47,26 @@ def process_dir(dir_path, relabel=False, pathPattern='*.jpg'):
     #     raise ValueError(f"Identities {missing_pids} are present in query but missing in gallery.")
     return data
 
+class DomLapkin4(ImageDataset):
+    dataset_dir = 'clean_dom_lapkin_4'
+
+    def __init__(self, root='', **kwargs):
+        self.dataset_dir = os.path.join(root, self.dataset_dir)
+        self.train_dir = os.path.join(self.dataset_dir, 'train')
+        self.query_dir = os.path.join(self.dataset_dir, 'query')
+        self.gallery_dir = os.path.join(self.dataset_dir, 'gallery')
+
+        self.check_before_run([self.train_dir, self.query_dir, self.gallery_dir])
+
+        # Process the training set
+        train = process_dir(self.train_dir, relabel=True, pathPattern='*/*.jpg')
+
+        # Process the query and gallery sets
+        query = process_dir(self.query_dir, relabel=False)
+        gallery = process_dir(self.gallery_dir, relabel=False)
+
+        super(DomLapkin4, self).__init__(train, query, gallery, **kwargs)
+
 class DomLapkin13(ImageDataset):
     dataset_dir = 'clean_dom_lapkin_1-3'
 

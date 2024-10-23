@@ -2,6 +2,7 @@ import os
 import torch
 import torchreid
 import numpy as np
+from pathlib import Path
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 from PIL import Image
@@ -54,8 +55,8 @@ def get_top_n(distmat, query_paths, gallery_paths, top_n=5):
     return results
 
 def num_classes():
-    from dom_lapkin import DomLapkin2
-    torchreid.data.register_image_dataset('animals_dataset', DomLapkin2)
+    from dom_lapkin import DomLapkin4
+    torchreid.data.register_image_dataset('animals_dataset', DomLapkin4)
 
     # Create the data manager
     datamanager = torchreid.data.ImageDataManager(
@@ -75,11 +76,12 @@ def num_classes():
 
 def main():
     # Paths to the query and gallery directories
-    model_path = '/Users/albert.bikeev/Projects/sobaken-id/re-identification/log/v0.1.12e-dl2/model/model.pth.tar-12'
+    model_path = '/Users/albert.bikeev/Projects/sobaken-id/re-identification/log/v0.1.60e-dl1-3/model/model.pth.tar-12'
 
-    query_dir = '/Users/albert.bikeev/Projects/sobaken-id/data/predictions/clean_dom_lapkin_2/query'
-    gallery_dir = '/Users/albert.bikeev/Projects/sobaken-id/data/predictions/clean_dom_lapkin_2/gallery'
-    predictions_dir = '/Users/albert.bikeev/Projects/sobaken-id/data/predictions/clean_dom_lapkin_2/modelv0.1.12e-dl2_predicted_top5'
+    query_dir = '/Users/albert.bikeev/Projects/sobaken-id/data/predictions/clean_dom_lapkin_4/query'
+    gallery_dir = '/Users/albert.bikeev/Projects/sobaken-id/data/predictions/clean_dom_lapkin_4/gallery'
+    predictions_dir = '/Users/albert.bikeev/Projects/sobaken-id/data/predictions/clean_dom_lapkin_4/modelv0.1.12e-dl13_predicted_top5'
+    Path(predictions_dir).mkdir(parents=True, exist_ok=True)
 
     # Ensure the reid directory exists
     if os.path.exists(predictions_dir):
@@ -92,7 +94,7 @@ def main():
     # Build the model architecture
     model = torchreid.models.build_model(
         name='osnet_x1_0',
-        num_classes=num_classes(),
+        num_classes=235,
         loss='softmax',
         pretrained=False
     )

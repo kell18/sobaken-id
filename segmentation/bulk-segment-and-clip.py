@@ -1,5 +1,6 @@
 import os
 import glob
+from pathlib import Path
 import cv2
 import numpy as np
 from tqdm import tqdm
@@ -8,6 +9,7 @@ from pixellib.torchbackend.instance import instanceSegmentation
 
 def segment_images(input_raw_ds_path, output_segmented_ds_dir, model_path,
                    save_as_flat_files=False, best_mask_based_on_area=False):
+    Path(output_segmented_ds_dir).mkdir(parents=True, exist_ok=True)
     # Initialize the segmentation model
     segmenter = instanceSegmentation()
     segmenter.load_model(model_path)
@@ -130,8 +132,8 @@ def apply_mask_and_crop(image, mask):
 
 
 if __name__ == '__main__':
-    input_directories = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/raw_dedup_clean_dom_lapkin_1-3'
-    output_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/segmented/segm_dom_lapkin_1-3__FLAT_AREA'
+    input_directories = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/raw_dom_lapkin_4'
+    output_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/segmented/segm_dom_lapkin_4__FLAT_AREA'
     model_file = '/Users/albert.bikeev/Projects/sobaken-id/trained_models/segm_PixelLib_pointrend_resnet50.pkl'
 
     segment_images(input_directories, output_directory, model_file,

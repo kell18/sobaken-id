@@ -120,8 +120,8 @@ def pad_and_resize(img, target_size):
     return new_img
 
 if __name__ == '__main__':
-    input_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/segmented/segm_no-art_dom_lapkin_1-3__FLAT_AREA'
-    output_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/clean/clean_dom_lapkin_1-3'
+    input_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/segmented/segm_dom_lapkin_4__FLAT_AREA'
+    output_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/clean/clean_dom_lapkin_4'
 
     # Set random seed for reproducibility
     random.seed(42)
