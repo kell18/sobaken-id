@@ -57,8 +57,8 @@ if __name__ == '__main__':
     # Run training
     engine.run(
         save_dir='log/v0.1.60e-dl1-3',
-        max_epoch=12,
-        eval_freq=3,
+        max_epoch=60,
+        eval_freq=10,
         print_freq=3,
         test_only=False
     )
