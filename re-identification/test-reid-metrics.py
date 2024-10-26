@@ -1,6 +1,7 @@
 import torch
 import torchreid
-from animals_dataset import AnimalsDataset
+from dom_lapkin import DomLapkin13
+from dom_lapkin import DomLapkin2
 import glob
 import os
 from torchreid.data.datasets import ImageDataset
@@ -8,7 +9,7 @@ from torchreid.data.datasets import ImageDataset
 
 if __name__ == '__main__':
 
-    torchreid.data.register_image_dataset('animals_dataset', AnimalsDataset)
+    torchreid.data.register_image_dataset('animals_dataset', DomLapkin2)
 
     # Create the data manager
     datamanager = torchreid.data.ImageDataManager(
@@ -32,7 +33,8 @@ if __name__ == '__main__':
     )
 
     # Load the trained weights
-    model_path = '/Users/albert.bikeev/Projects/sobaken-id/re-identification/log/dom_lapkin2_osnet/model/model.pth.tar-12'
+    model_path = '/Users/albert.bikeev/Projects/sobaken-id/re-identification/log/v0.1.60e-dl1-3/model/model.pth.tar-30'
+    print(f"Evaluating model {model_path}...")
     state_dict = torch.load(model_path, map_location='cpu')
     model.load_state_dict(state_dict['state_dict'])
 

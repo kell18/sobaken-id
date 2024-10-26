@@ -27,7 +27,7 @@ if __name__ == '__main__':
     model = torchreid.models.build_model(
         name='osnet_x1_0',
         num_classes=datamanager.num_train_pids,
-        loss='softmax',
+        loss='triplet',
         pretrained=True
     )
     # Move the model to GPU if available
@@ -56,9 +56,9 @@ if __name__ == '__main__':
 
     # Run training
     engine.run(
-        save_dir='log/v0.1.60e-dl1-3',
-        max_epoch=60,
-        eval_freq=10,
+        save_dir='log/v0.1.12e_lTrip-dl1-3',
+        max_epoch=12,
+        eval_freq=3,
         print_freq=3,
         test_only=False
     )

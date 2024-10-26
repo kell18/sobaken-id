@@ -74,13 +74,13 @@ def num_classes():
     print(datamanager.num_train_pids)
     return datamanager.num_train_pids
 
-def main():
+if __name__ == '__main__':
     # Paths to the query and gallery directories
-    model_path = '/Users/albert.bikeev/Projects/sobaken-id/re-identification/log/v0.1.60e-dl1-3/model/model.pth.tar-12'
+    model_path = '/Users/albert.bikeev/Projects/sobaken-id/re-identification/log/v0.1.12e_lTrip-dl1-3/model/model.pth.tar-12'
 
-    query_dir = '/Users/albert.bikeev/Projects/sobaken-id/data/predictions/clean_dom_lapkin_4/query'
-    gallery_dir = '/Users/albert.bikeev/Projects/sobaken-id/data/predictions/clean_dom_lapkin_4/gallery'
-    predictions_dir = '/Users/albert.bikeev/Projects/sobaken-id/data/predictions/clean_dom_lapkin_4/modelv0.1.12e-dl13_predicted_top5'
+    query_dir = '/Users/albert.bikeev/Projects/sobaken-id/data/predictions/clean_dom_lapkin_1-3/query'
+    gallery_dir = '/Users/albert.bikeev/Projects/sobaken-id/data/predictions/clean_dom_lapkin_1-3/gallery'
+    predictions_dir = '/Users/albert.bikeev/Projects/sobaken-id/data/predictions/clean_dom_lapkin_1-3/modelv0.1.12e_lTrip-dl1-3_predicted_top5'
     Path(predictions_dir).mkdir(parents=True, exist_ok=True)
 
     # Ensure the reid directory exists
@@ -94,7 +94,7 @@ def main():
     # Build the model architecture
     model = torchreid.models.build_model(
         name='osnet_x1_0',
-        num_classes=235,
+        num_classes=235, # 88
         loss='softmax',
         pretrained=False
     )
@@ -172,6 +172,3 @@ def main():
             shutil.copyfile(gallery_img_path, new_gallery_path)
 
     print("Re-identification results saved in:", predictions_dir)
-
-if __name__ == '__main__':
-    main()
