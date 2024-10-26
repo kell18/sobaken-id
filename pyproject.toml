@@ -36,6 +36,7 @@ torch = {version = "^2.5.0", python = "^3.7", platform = "linux"}
 # /end Deep-person-reid specific deps
 imagehash = "^4.3.1"
 grad-cam = "^1.5.4"
+dvc = "^3.56.0"
 
 [build-system]
 requires = ["poetry-core"]
