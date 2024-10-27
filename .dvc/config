@@ -1,0 +1,5 @@
+[core]
+    remote = origin
+['remote "origin"']
+    url = https://dagshub.com/kell18/sobaken-id.dvc
+    auth = basic
