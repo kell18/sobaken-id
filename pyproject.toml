@@ -4,7 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["Albert Bikeev <albert.bikeev@gmail.com>"]
 readme = "README.md"
-packages = [{ include = "scraping" }, { include = "segmentation" }, { include = "re-identification"}, { include = "segmentation"}]
+packages = [{ include = "data-collection" }, { include = "segmentation" }, { include = "re-identification"}]
 package-mode = false
 
 [tool.poetry.dependencies]
@@ -37,6 +37,7 @@ torch = {version = "^2.5.0", python = "^3.7", platform = "linux"}
 imagehash = "^4.3.1"
 grad-cam = "^1.5.4"
 dvc = "^3.56.0"
+aiohttp = "^3.10.10"
 
 [build-system]
 requires = ["poetry-core"]

@@ -3,7 +3,11 @@ import os
 import sys
 from collections import defaultdict
 
-def main(index_filename, base_imgs_path):
+
+def fix_file_names_with_post_id(index_filename, base_imgs_path):
+    """
+    Renames files from random hashes to the known format of short-public-id_post-id_image-num
+    """
     # Read the index file
     with open(index_filename, 'r', encoding='utf-8') as f:
         data = f.read()
@@ -63,4 +67,4 @@ if __name__ == '__main__':
         sys.exit(1)
     index_filename = sys.argv[1]
     base_imgs_path = sys.argv[2]
-    main(index_filename, base_imgs_path)
+    fix_file_names_with_post_id(index_filename, base_imgs_path)
