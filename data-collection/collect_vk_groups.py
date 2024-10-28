@@ -36,7 +36,6 @@ groups_to_search = [
     # VKGroup('club30323533', 30323533, 'Краснодар'),
     # VKGroup('sledopit.online', 198498843, None),
     # VKGroup('goodhandshelp', 42062020, None),
-    # VKGroup('poisk_zhivotnykh', 205909292, None),
 ]
 
 # Directory paths
