@@ -6,11 +6,37 @@ from tqdm import tqdm
 import shutil
 import gc
 
+# TODO - use higher threshold for images in different posts
+
+"""
+input_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts/imgs_dedup'
+output_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts/imgs_dedup_dedup'
+duplicates_output_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts/duplicates_among_dedup'
+"""
+
+input_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/raw_dedupX2_clean_dom_lapkin_1-3'
+output_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/raw_dedupX3_clean_dom_lapkin_1-3'
+duplicates_output_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/x2DUPLICATES_raw_dom_lapkin_1-3'
+
 def remove_duplicate_images(input_dir, unique_output_dir, duplicates_output_dir, hash_size=8, threshold=5, batch_size=10000):
     """
-    Optimized version for large datasets.
+    Removes duplicate images from the input directory based on perceptual hashing.
+    Images are considered duplicates if the Hamming distance between their hashes is less than or equal to the threshold.
+    Saves unique images to the unique_output_dir and copies duplicate images with prefixed filenames to the duplicates_output_dir for inspection.
+
+    Parameters:
+    - input_dir: Path to the directory containing images.
+    - unique_output_dir: Path to the directory to save unique images.
+    - duplicates_output_dir: Path to the directory to save duplicate images.
+    - hash_size: Size of the hash; higher values are more precise but slower.
+    - threshold: Maximum Hamming distance between hashes to consider images as duplicates.
+    - batch_size: Number of images to process in each batch.
     """
     # Create the output directories if they don't exist
+    if os.path.exists(unique_output_dir) and os.path.isdir(unique_output_dir):
+        shutil.rmtree(unique_output_dir)
+    if os.path.exists(duplicates_output_dir) and os.path.isdir(duplicates_output_dir):
+        shutil.rmtree(duplicates_output_dir)
     os.makedirs(unique_output_dir, exist_ok=True)
     os.makedirs(duplicates_output_dir, exist_ok=True)
 
@@ -18,15 +44,12 @@ def remove_duplicate_images(input_dir, unique_output_dir, duplicates_output_dir,
     image_paths = glob.glob(os.path.join(input_dir, '*.*'))  # Adjust the pattern if needed
     total_images = len(image_paths)
 
-    # Dictionaries to store hashes and image info
-    hashes = {}  # Key: hash, Value: list of image infos
-    post_images = {}  # Key: (group_id, post_id), Value: list of image infos
+    # List to store image infos
+    image_infos = []
 
     print("Processing images and computing hashes...")
     for batch_start in range(0, total_images, batch_size):
         batch_paths = image_paths[batch_start:batch_start+batch_size]
-        batch_image_infos = []  # List to hold image infos for the current batch
-
         for img_path in tqdm(batch_paths, desc=f"Batch {batch_start//batch_size + 1}"):
             try:
                 with Image.open(img_path) as img:
@@ -37,158 +60,76 @@ def remove_duplicate_images(input_dir, unique_output_dir, duplicates_output_dir,
                 print(f"Error processing {img_path}: {e}")
                 continue
 
-            # Extract group_id, post_id, img_num from the filename
-            filename = os.path.basename(img_path)
-            base_name, ext = os.path.splitext(filename)
-            parts = base_name.split('_')
-            if len(parts) == 3:
-                group_id, post_id, img_num = parts
-            else:
-                print(f"Filename {filename} does not match expected format. Skipping.")
-                continue
-
             # Store image info
+            filename = os.path.basename(img_path)
             image_info = {
                 'img_path': img_path,
                 'filename': filename,
-                'group_id': group_id,
-                'post_id': post_id,
-                'img_num': img_num,
-                'ext': ext,
                 'hash': img_hash,
-                'is_duplicate': False,  # Will be updated later
-                'duplicate_with': None,  # (group_id, post_id) of the selected image
-                'duplicate_id': None,    # Unique ID for duplicate group
+                'duplicate_id': None,  # Will be assigned if the image is a duplicate
             }
-            batch_image_infos.append(image_info)
+            image_infos.append(image_info)
 
-            # Add image to post_images
-            post_key = (group_id, post_id)
-            post_images.setdefault(post_key, []).append(image_info)
+        # Optional: clear memory if needed
+        gc.collect()
 
-            # Add image to hashes dict
-            hashes.setdefault(img_hash, []).append(image_info)
-
-        # No need to keep batch_image_infos beyond this point
-        del batch_image_infos
-        gc.collect()  # Explicitly invoke garbage collection
-
-    print("Analyzing duplicates across posts and groups...")
-    # Assign a unique duplicate ID per group of duplicates
+    print("Analyzing duplicates based on Hamming distance...")
+    # Dictionary to keep track of which images have been processed
+    processed_indices = set()
     duplicate_id_counter = 0
-    for img_hash, imgs in hashes.items():
-        # Initialize duplicate_id for this hash if duplicates are found
-        if len(imgs) > 1:
+
+    # Loop through all images and compare hashes
+    for i in tqdm(range(len(image_infos)), desc="Comparing images"):
+        if i in processed_indices:
+            continue
+        img_info_1 = image_infos[i]
+        duplicates = []
+        for j in range(i+1, len(image_infos)):
+            if j in processed_indices:
+                continue
+            img_info_2 = image_infos[j]
+            # Compute Hamming distance between hashes
+            distance = img_info_1['hash'] - img_info_2['hash']
+            if distance <= threshold:
+                duplicates.append(img_info_2)
+                processed_indices.add(j)
+        if duplicates:
+            # Assign duplicate_id
             duplicate_id_counter += 1
             duplicate_id = f"dup{duplicate_id_counter:04d}"
-            # Identify duplicates across posts/groups
-            posts_with_hash = {}
-            for img_info in imgs:
-                post_key = (img_info['group_id'], img_info['post_id'])
-                posts_with_hash.setdefault(post_key, []).append(img_info)
-            # If duplicates are in multiple posts
-            if len(posts_with_hash) > 1:
-                # Sort post_keys to determine which post to keep
-                sorted_post_keys = sorted(posts_with_hash.keys())
-                selected_post_key = sorted_post_keys[0]  # Keep the first post
-                for post_key in sorted_post_keys[1:]:
-                    for img_info in posts_with_hash[post_key]:
-                        img_info['is_duplicate'] = True
-                        img_info['duplicate_with'] = selected_post_key
-                        img_info['duplicate_id'] = duplicate_id
-            else:
-                # Duplicates within the same post, no action needed
-                continue
-
-    print("Identifying posts with all images as duplicates...")
-    # Determine which posts have all images as duplicates
-    posts_to_remove = {}
-    for post_key, imgs in post_images.items():
-        all_duplicates = all(img_info.get('is_duplicate', False) for img_info in imgs)
-        if all_duplicates:
-            # Get the selected_post_key that these images are duplicates of
-            duplicate_with_keys = set(img_info['duplicate_with'] for img_info in imgs)
-            if len(duplicate_with_keys) == 1:
-                duplicate_with_key = duplicate_with_keys.pop()
-                posts_to_remove[post_key] = duplicate_with_key
-                # print(f"All images in post {post_key} are duplicates with post {duplicate_with_key}. Marking for removal.")
-            else:
-                print(f"Post {post_key} has images duplicated with multiple posts. Skipping.")
-
-    # Now, process images again to copy them to the appropriate directories
-    print("Copying images to output directories...")
-    for img_hash, imgs in tqdm(hashes.items(), desc="Copying images"):
-        for img_info in imgs:
-            post_key = (img_info['group_id'], img_info['post_id'])
-            img_path = img_info['img_path']
-            filename = img_info['filename']
-            ext = img_info['ext']
-            if post_key in posts_to_remove:
-                # Skip images from posts marked for removal
-                continue
-            if img_info.get('is_duplicate', False):
-                # Duplicate image, but not from a post to be removed
-                # Copy to duplicates_output_dir with new naming convention
-                duplicate_with_key = img_info['duplicate_with']
-                duplicate_id = img_info['duplicate_id']
-                # For partial duplicates
-                new_filename = f"{duplicate_id}_{img_info['group_id']}-{img_info['post_id']}-{img_info['img_num']}{ext}"
-                output_path = os.path.join(duplicates_output_dir, new_filename)
-                if not os.path.exists(output_path):
-                    shutil.copy2(img_path, output_path)
-            else:
-                # Unique image, copy to unique_output_dir
-                output_path = os.path.join(unique_output_dir, filename)
-                if not os.path.exists(output_path):
-                    shutil.copy2(img_path, output_path)
-
-    # Copy images from posts marked for removal to duplicates_output_dir for inspection
-    print("Copying images from posts marked for removal to duplicates output directory...")
-    for removed_post_key, selected_post_key in posts_to_remove.items():
-        # Create subdirectory per duplicate_id
-        duplicate_id = None
-        # Find the duplicate_id for this group of duplicates
-        for img_info in post_images[removed_post_key]:
-            if img_info.get('duplicate_id'):
-                duplicate_id = img_info['duplicate_id']
-                break
-        if duplicate_id is None:
-            # Assign a new duplicate_id if not found (should not happen)
-            duplicate_id_counter += 1
-            duplicate_id = f"dup{duplicate_id_counter:04d}"
-
-        # Copy images from the removed post
-        for img_info in post_images[removed_post_key]:
-            img_path = img_info['img_path']
-            ext = img_info['ext']
-            new_filename = f"p{duplicate_id}_{img_info['group_id']}-{img_info['post_id']}-{img_info['img_num']}{ext}"
-            output_path = os.path.join(duplicates_output_dir, new_filename)
-            if not os.path.exists(output_path):
-                shutil.copy2(img_path, output_path)
-
-        # Also copy images from the selected post
-        for img_info in post_images[selected_post_key]:
-            img_path = img_info['img_path']
-            ext = img_info['ext']
-            new_filename = f"{duplicate_id}_{img_info['group_id']}-{img_info['post_id']}-{img_info['img_num']}{ext}"
-            output_path = os.path.join(duplicates_output_dir, new_filename)
-            if not os.path.exists(output_path):
-                shutil.copy2(img_path, output_path)
+            img_info_1['duplicate_id'] = duplicate_id
+            # Copy the first image (original) to unique_output_dir
+            original_output_path = os.path.join(unique_output_dir, img_info_1['filename'])
+            if not os.path.exists(original_output_path):
+                shutil.copy2(img_info_1['img_path'], original_output_path)
+            # Copy duplicates to duplicates_output_dir
+            for dup_info in duplicates:
+                dup_info['duplicate_id'] = duplicate_id
+                new_dupl_filename = f"{duplicate_id}_{dup_info['filename']}"
+                new_orig_dupl_filename = f"{duplicate_id}_{img_info_1['filename']}"
+                duplicate_output_path = os.path.join(duplicates_output_dir, new_dupl_filename)
+                orig_dupl_output_path = os.path.join(duplicates_output_dir, new_orig_dupl_filename)
+                if not os.path.exists(duplicate_output_path):
+                    shutil.copy2(dup_info['img_path'], duplicate_output_path)
+                if not os.path.exists(orig_dupl_output_path):
+                    shutil.copy2(img_info_1['img_path'], orig_dupl_output_path)
+        else:
+            # No duplicates found, copy image to unique_output_dir
+            original_output_path = os.path.join(unique_output_dir, img_info_1['filename'])
+            if not os.path.exists(original_output_path):
+                shutil.copy2(img_info_1['img_path'], original_output_path)
+        processed_indices.add(i)
 
     print("Duplicate removal complete.")
     print(f"Unique images saved to: {unique_output_dir}")
     print(f"Duplicate images saved to: {duplicates_output_dir}")
 
 if __name__ == '__main__':
-    input_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts/imgs'
-    output_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts/imgs_dedup'
-    duplicates_output_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts/duplicates'
-
     remove_duplicate_images(
         input_dir=input_directory,
         unique_output_dir=output_directory,
         duplicates_output_dir=duplicates_output_directory,
         hash_size=8,
-        threshold=5,
-        batch_size=10000  # Adjust batch size as needed
+        threshold=8,
+        batch_size=10000
     )
