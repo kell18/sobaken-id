@@ -16,11 +16,9 @@
 
 1.
 <img width="1594" alt="Screenshot 2024-10-24 at 11 54 51" src="https://github.com/user-attachments/assets/9b33d7c0-047b-4e57-b3ac-160e4ed9d80c">
-3.  
-<img width="1594" alt="Screenshot 2024-10-24 at 11 54 51" src="https://github.com/user-attachments/assets/70c9becb-c74f-4591-856b-07acffdbecb6">
-4.  
+2.  
 <img width="1674" alt="Screenshot 2024-10-24 at 11 56 07" src="https://github.com/user-attachments/assets/3bc6e2c4-3681-49fd-9fe0-4f12a12ea21d">
-5.  
+3.  
 <img width="1715" alt="Screenshot 2024-10-24 at 11 57 32" src="https://github.com/user-attachments/assets/222d39be-dd5c-4e4e-9889-f0f0238a868f">
 
 
