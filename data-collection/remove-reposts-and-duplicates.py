@@ -12,7 +12,7 @@ import shutil
 # Using Perceptual Hash model (pre-trained, used via imagehash lib):
 # 1. Deduplicate imgs within each post
 # 2. Deduplicate static images similar to what found in SPECIAL_ADS_DIRS
-# 3. Deduplicate any posts with __at least 1 image in common__
+# 3. Remove all the posts with __at least 1 image in common__ except the one with the most images
 
 # ----------------------- Configuration Parameters -----------------------
 
