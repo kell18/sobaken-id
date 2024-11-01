@@ -1,5 +1,3 @@
-import os
-import sys
 from pathlib import Path
 
 directory_path = "/Users/albert.bikeev/Projects/sobaken-id/data/raw/dedup_dl/raw_clean_dom_lapkin_1-3"

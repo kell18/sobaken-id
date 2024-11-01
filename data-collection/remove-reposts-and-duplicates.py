@@ -1,7 +1,6 @@
 import os
 import sys
 import signal
-import json
 import pickle
 from collections import defaultdict
 from PIL import Image

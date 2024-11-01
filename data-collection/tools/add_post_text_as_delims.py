@@ -1,10 +1,8 @@
 import os
-import shutil
 from collections import defaultdict
 from PIL import Image, ImageDraw, ImageFont
 import json
 import multiprocessing
-from functools import partial
 import textwrap
 from file_name_info import FileNameInfo
 from tqdm import tqdm  # Added for progress tracking

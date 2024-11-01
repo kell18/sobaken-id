@@ -1,5 +1,4 @@
 import os
-import shutil
 from collections import defaultdict
 from file_name_info import FileNameInfo
 
