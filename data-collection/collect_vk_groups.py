@@ -33,7 +33,7 @@ groups_to_search = [
     # VKGroup('poteryashki_karelia', 83381493, 'Карелия'),
     # VKGroup('club81472745', 81472745, 'Казань'),
     # VKGroup('myhomeforpet', 133848717, 'Альметьевск'),
-    # VKGroup('club30323533', 30323533, 'Краснодар'),
+    # VKGroup('club30323533', 30323533, 'Краснодар'), ## <- низкое качество куча котят и щенков
     # VKGroup('sledopit.online', 198498843, None),
     # VKGroup('goodhandshelp', 42062020, None),
 ]

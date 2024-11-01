@@ -3,9 +3,9 @@ import json
 from tqdm import tqdm
 
 # Set the paths
-input_json_file = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts/index.json'
-output_json_file = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts/index_dedup.json'
-images_dir = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts/imgs_dedup'
+input_json_file = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts_dedup/orig_index.json'
+output_json_file = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts_dedup/dedup_index.json'
+images_dir = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts_dedup/deduplicated_imgs'
 
 
 def filter_index_json(input_json_path, output_json_path, images_directory):

@@ -1,13 +1,12 @@
 import os
 import sys
 from pathlib import Path
-from sys import prefix
 
-directory_path = "/Users/albert.bikeev/Projects/sobaken-id/data/raw/raw_dedup_clean_dom_lapkin_1-3"
+directory_path = "/Users/albert.bikeev/Projects/sobaken-id/data/raw/dedup_dl/raw_clean_dom_lapkin_1-3"
 prefix = 'vkg187961884_'
 
 
-def rename_files(directory, prefix):
+def rename_files(directory):
     """
     Renames all files in the specified directory by prefixing them with prefix.
 
@@ -53,4 +52,4 @@ def rename_files(directory, prefix):
 
 
 if __name__ == "__main__":
-    rename_files(directory_path, prefix)
+    rename_files(directory_path)

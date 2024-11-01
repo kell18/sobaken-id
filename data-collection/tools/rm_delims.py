@@ -4,7 +4,7 @@ import sys
 # ----------------------------- Configuration -----------------------------
 
 # Path to the directory containing the files
-TARGET_DIR = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts/test'
+TARGET_DIR = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts_dedup/_part_3'
 
 # ---------------------------------------------------------------------------
 

@@ -1,135 +1,313 @@
 import os
-import glob
+import sys
+import signal
+import json
+import pickle
+from collections import defaultdict
 from PIL import Image
 import imagehash
-from tqdm import tqdm
 import shutil
-import gc
 
-# TODO - use higher threshold for images in different posts
+#### Docs:
+# Using Perceptual Hash model (pre-trained, used via imagehash lib):
+# 1. Deduplicate imgs within each post
+# 2. Deduplicate static images similar to what found in SPECIAL_ADS_DIRS
+# 3. Deduplicate any posts with __at least 1 image in common__
 
-"""
-input_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts/imgs_dedup'
-output_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts/imgs_dedup_dedup'
-duplicates_output_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts/duplicates_among_dedup'
-"""
+# ----------------------- Configuration Parameters -----------------------
 
-input_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/raw_dedupX2_clean_dom_lapkin_1-3'
-output_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/raw_dedupX3_clean_dom_lapkin_1-3'
-duplicates_output_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/x2DUPLICATES_raw_dom_lapkin_1-3'
+# Directories
+BASE_IMAGES_DIRs = [
+    '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts_dedup/_part_1',
+    '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts_dedup/_part_2',
+    '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts_dedup/_part_3',
+    '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts_dedup/_part_4',
+    '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts_dedup/_part_5',
+    '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts_dedup/_part_6',
+    '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts_dedup/_part_7',
+    '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts_dedup/_part_8',
+    '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts_dedup/_part_9',
+    '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts_dedup/_part_10'
+]
+DUPLICATES_DIR = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts_dedup/duplicates_parts'
+SPECIAL_ADS_DIRS = [ '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts_dedup/test/static_duplicates']
+HASHES_FILE = 'image_hashes.pkl'  # File to save/load image hashes
+PROGRESS_FILE = 'deduplication_progress.pkl'  # File to save/load progress
 
-def remove_duplicate_images(input_dir, unique_output_dir, duplicates_output_dir, hash_size=8, threshold=5, batch_size=10000):
-    """
-    Removes duplicate images from the input directory based on perceptual hashing.
-    Images are considered duplicates if the Hamming distance between their hashes is less than or equal to the threshold.
-    Saves unique images to the unique_output_dir and copies duplicate images with prefixed filenames to the duplicates_output_dir for inspection.
+# Thresholds
+INTRA_POST_THRESHOLD = 3  # Threshold for duplicates within a post
+INTER_POST_THRESHOLD = 3  # Threshold for duplicates between posts
 
-    Parameters:
-    - input_dir: Path to the directory containing images.
-    - unique_output_dir: Path to the directory to save unique images.
-    - duplicates_output_dir: Path to the directory to save duplicate images.
-    - hash_size: Size of the hash; higher values are more precise but slower.
-    - threshold: Maximum Hamming distance between hashes to consider images as duplicates.
-    - batch_size: Number of images to process in each batch.
-    """
-    # Create the output directories if they don't exist
-    if os.path.exists(unique_output_dir) and os.path.isdir(unique_output_dir):
-        shutil.rmtree(unique_output_dir)
-    if os.path.exists(duplicates_output_dir) and os.path.isdir(duplicates_output_dir):
-        shutil.rmtree(duplicates_output_dir)
-    os.makedirs(unique_output_dir, exist_ok=True)
-    os.makedirs(duplicates_output_dir, exist_ok=True)
+# ------------------------------------------------------------------------
 
-    # Collect all image paths
-    image_paths = glob.glob(os.path.join(input_dir, '*.*'))  # Adjust the pattern if needed
-    total_images = len(image_paths)
+# Global variables for progress saving
+progress = {
+    'image_location_map': {},  # Mapping for image locations
+}
 
-    # List to store image infos
-    image_infos = []
+# Global variable for all image hashes
+all_hashes = {}
 
-    print("Processing images and computing hashes...")
-    for batch_start in range(0, total_images, batch_size):
-        batch_paths = image_paths[batch_start:batch_start+batch_size]
-        for img_path in tqdm(batch_paths, desc=f"Batch {batch_start//batch_size + 1}"):
-            try:
-                with Image.open(img_path) as img:
-                    img = img.convert('RGB')
-                    # Compute perceptual hash
-                    img_hash = imagehash.phash(img, hash_size=hash_size)
-            except Exception as e:
-                print(f"Error processing {img_path}: {e}")
-                continue
+# Handle graceful exit
+def signal_handler(sig, frame):
+    print('Interrupt received, saving progress...')
+    save_progress()
+    sys.exit(0)
 
-            # Store image info
-            filename = os.path.basename(img_path)
-            image_info = {
-                'img_path': img_path,
-                'filename': filename,
-                'hash': img_hash,
-                'duplicate_id': None,  # Will be assigned if the image is a duplicate
-            }
-            image_infos.append(image_info)
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
 
-        # Optional: clear memory if needed
-        gc.collect()
+def save_progress():
+    with open(PROGRESS_FILE, 'wb') as f:
+        pickle.dump(progress, f)
+    print("Progress saved.")
 
-    print("Analyzing duplicates based on Hamming distance...")
-    # Dictionary to keep track of which images have been processed
-    processed_indices = set()
+def load_progress():
+    global progress
+    if os.path.exists(PROGRESS_FILE):
+        with open(PROGRESS_FILE, 'rb') as f:
+            progress = pickle.load(f)
+        print("Progress loaded.")
+    else:
+        print("No previous progress found. Starting fresh.")
+
+def compute_image_hashes():
+    global all_hashes  # Declare as global to modify the global variable
+    if os.path.exists(HASHES_FILE):
+        with open(HASHES_FILE, 'rb') as f:
+            all_hashes = pickle.load(f)
+        print("Loaded image hashes from file.")
+    else:
+        all_hashes = {}
+        print("Computing image hashes...")
+        # Process base images
+        image_paths = []
+        for base_dir in BASE_IMAGES_DIRs:
+            image_paths.extend(glob_images_in_directory(base_dir))
+        for img_path in image_paths:
+            img_hash = compute_phash(img_path)
+            if img_hash is not None:
+                all_hashes[img_path] = img_hash
+                progress['image_location_map'][img_path] = img_path  # Initialize mapping
+
+        # Process special ads images
+        for special_dir in SPECIAL_ADS_DIRS:
+            image_paths = glob_images_in_directory(special_dir)
+            for img_path in image_paths:
+                img_hash = compute_phash(img_path)
+                if img_hash is not None:
+                    all_hashes[img_path] = img_hash
+                    progress['image_location_map'][img_path] = img_path  # Initialize mapping
+
+        with open(HASHES_FILE, 'wb') as f:
+            pickle.dump(all_hashes, f)
+        print("Image hashes computed and saved.")
+    return all_hashes
+
+def glob_images_in_directory(directory):
+    image_extensions = ('.jpg', '.jpeg', '.png', '.gif', '.bmp')
+    image_paths = []
+    for root, _, files in os.walk(directory):
+        for file in files:
+            if file.lower().endswith(image_extensions):
+                image_paths.append(os.path.join(root, file))
+    return image_paths
+
+def compute_phash(image_path):
+    try:
+        with Image.open(image_path) as img:
+            img = img.convert('RGB')
+            img_hash = imagehash.phash(img)
+        return img_hash
+    except Exception as e:
+        print(f"Error computing hash for {image_path}: {e}")
+        return None
+
+def get_post_id_from_path(image_path):
+    # Assuming filenames are in the format: prefix_groupid_postid_imgnum.ext
+    filename = os.path.basename(image_path)
+    base_name, _ = os.path.splitext(filename)
+    parts = base_name.split('_')
+    if len(parts) >= 3:
+        group_id = parts[-3]
+        post_id = parts[-2]
+        return f"{group_id}_{post_id}"
+    else:
+        return None
+
+def deduplicate_within_posts():
+    print("Deduplicating images within posts...")
+    posts = defaultdict(list)
+    for img_path, img_hash in all_hashes.items():
+        post_id = get_post_id_from_path(img_path)
+        if post_id:
+            posts[post_id].append((img_path, img_hash))
+
+    for post_id, img_list in posts.items():
+        unique_hashes = {}
+        for img_path, img_hash in img_list:
+            duplicate_found = False
+            for u_hash in unique_hashes.values():
+                if abs(img_hash - u_hash) <= INTRA_POST_THRESHOLD:
+                    duplicate_found = True
+                    break
+            if not duplicate_found:
+                unique_hashes[img_path] = img_hash
+            else:
+                # Remove duplicate image
+                current_path = progress['image_location_map'].get(img_path, img_path)
+                if os.path.exists(current_path):
+                    os.remove(current_path)
+                    print(f"Removed duplicate image within post {post_id}: {current_path}")
+                    del progress['image_location_map'][img_path]
+                    del all_hashes[img_path]
+                else:
+                    print(f"File already removed: {current_path}")
+    print("Intra-post deduplication complete.")
+
+def remove_special_ads_images():
+    print("Removing special ads images from base images...")
+    special_hashes = set()
+    for special_dir in SPECIAL_ADS_DIRS:
+        for img_path in glob_images_in_directory(special_dir):
+            img_hash = all_hashes.get(img_path)
+            if img_hash:
+                special_hashes.add(img_hash)
+
+    for img_path in list(all_hashes.keys()):
+        if any([img_path.startswith(b) for b in BASE_IMAGES_DIRs]):
+            img_hash = all_hashes[img_path]
+            for special_hash in special_hashes:
+                if abs(img_hash - special_hash) <= INTRA_POST_THRESHOLD:
+                    # Remove the image if it exists
+                    current_path = progress['image_location_map'].get(img_path, img_path)
+                    if os.path.exists(current_path):
+                        os.remove(current_path)
+                        print(f"Removed special ad image: {current_path}")
+                        del progress['image_location_map'][img_path]
+                        del all_hashes[img_path]
+                    else:
+                        print(f"File already removed: {current_path}")
+                    break
+    print("Special ads images removed.")
+
+def deduplicate_across_posts():
+    print("Deduplicating images across posts...")
+    posts = defaultdict(set)
+    for img_path, img_hash in all_hashes.items():
+        post_id = get_post_id_from_path(img_path)
+        if post_id:
+            posts[post_id].add(img_hash)
+
+    # Union-Find Data Structure
+    parent = {}
+
+    def find(u):
+        while parent[u] != u:
+            parent[u] = parent[parent[u]]  # Path compression
+            u = parent[u]
+        return u
+
+    def union(u, v):
+        pu, pv = find(u), find(v)
+        if pu != pv:
+            parent[pv] = pu
+
+    # Initialize parent pointers
+    for post_id in posts:
+        parent[post_id] = post_id
+
+    # Build inverted index: hash -> set of post_ids
+    hash_to_posts = defaultdict(set)
+    for post_id, img_hashes in posts.items():
+        for img_hash in img_hashes:
+            hash_to_posts[img_hash].add(post_id)
+
+    # Union posts that share similar images
+    for img_hash, post_ids in hash_to_posts.items():
+        post_ids = list(post_ids)
+        for i in range(len(post_ids)):
+            for j in range(i + 1, len(post_ids)):
+                post_id1 = post_ids[i]
+                post_id2 = post_ids[j]
+                if find(post_id1) != find(post_id2):
+                    union(post_id1, post_id2)
+
+    # Group posts by their root parent
+    clusters = defaultdict(set)
+    for post_id in posts:
+        root = find(post_id)
+        clusters[root].add(post_id)
+
+    # Handle duplicates within clusters
     duplicate_id_counter = 0
+    for cluster_posts in clusters.values():
+        if len(cluster_posts) > 1:
+            # Collect images and counts
+            post_images = {}
+            for post_id in cluster_posts:
+                img_hashes = posts[post_id]
+                post_images[post_id] = img_hashes
 
-    # Loop through all images and compare hashes
-    for i in tqdm(range(len(image_infos)), desc="Comparing images"):
-        if i in processed_indices:
-            continue
-        img_info_1 = image_infos[i]
-        duplicates = []
-        for j in range(i+1, len(image_infos)):
-            if j in processed_indices:
-                continue
-            img_info_2 = image_infos[j]
-            # Compute Hamming distance between hashes
-            distance = img_info_1['hash'] - img_info_2['hash']
-            if distance <= threshold:
-                duplicates.append(img_info_2)
-                processed_indices.add(j)
-        if duplicates:
-            # Assign duplicate_id
-            duplicate_id_counter += 1
-            duplicate_id = f"dup{duplicate_id_counter:04d}"
-            img_info_1['duplicate_id'] = duplicate_id
-            # Copy the first image (original) to unique_output_dir
-            original_output_path = os.path.join(unique_output_dir, img_info_1['filename'])
-            if not os.path.exists(original_output_path):
-                shutil.copy2(img_info_1['img_path'], original_output_path)
-            # Copy duplicates to duplicates_output_dir
-            for dup_info in duplicates:
-                dup_info['duplicate_id'] = duplicate_id
-                new_dupl_filename = f"{duplicate_id}_{dup_info['filename']}"
-                new_orig_dupl_filename = f"{duplicate_id}_{img_info_1['filename']}"
-                duplicate_output_path = os.path.join(duplicates_output_dir, new_dupl_filename)
-                orig_dupl_output_path = os.path.join(duplicates_output_dir, new_orig_dupl_filename)
-                if not os.path.exists(duplicate_output_path):
-                    shutil.copy2(dup_info['img_path'], duplicate_output_path)
-                if not os.path.exists(orig_dupl_output_path):
-                    shutil.copy2(img_info_1['img_path'], orig_dupl_output_path)
-        else:
-            # No duplicates found, copy image to unique_output_dir
-            original_output_path = os.path.join(unique_output_dir, img_info_1['filename'])
-            if not os.path.exists(original_output_path):
-                shutil.copy2(img_info_1['img_path'], original_output_path)
-        processed_indices.add(i)
+            # Sort posts by number of images (for case 5.3)
+            sorted_posts = sorted(post_images.items(), key=lambda x: len(x[1]), reverse=True)
+            original_post_id = sorted_posts[0][0]
 
-    print("Duplicate removal complete.")
-    print(f"Unique images saved to: {unique_output_dir}")
-    print(f"Duplicate images saved to: {duplicates_output_dir}")
+            # Handle according to the cases
+            for post_id in cluster_posts:
+                if post_id == original_post_id:
+                    # Move images to originals dir (if required)
+                    pass  # No action needed as per your updated requirements
+                else:
+                    # Move images to duplicates dir
+                    duplicate_id_counter += 1
+                    duplicate_id = f"dup{duplicate_id_counter:04d}"
+                    move_post_images_to_duplicates(post_id, duplicate_id)
 
-if __name__ == '__main__':
-    remove_duplicate_images(
-        input_dir=input_directory,
-        unique_output_dir=output_directory,
-        duplicates_output_dir=duplicates_output_directory,
-        hash_size=8,
-        threshold=8,
-        batch_size=10000
-    )
+            print(f"Handled duplicate cluster: {cluster_posts} ({original_post_id} selected)")
+
+    print("Inter-post deduplication complete.")
+
+def move_post_images_to_duplicates(post_id, duplicate_id):
+    for img_path in list(all_hashes.keys()):
+        if get_post_id_from_path(img_path) == post_id:
+            current_path = progress['image_location_map'].get(img_path, img_path)
+            if os.path.exists(current_path):
+                new_filename = f"{duplicate_id}_{os.path.basename(current_path)}"
+                new_path = os.path.join(DUPLICATES_DIR, new_filename)
+                shutil.move(current_path, new_path)
+                progress['image_location_map'][img_path] = new_path  # Update mapping
+                del all_hashes[img_path]  # Remove from hashes
+            else:
+                print(f"File already moved or missing: {current_path}")
+
+def deduplication_loop():
+    # Load progress if any
+    load_progress()
+
+    # Compute or load image hashes
+    compute_image_hashes()
+
+    global all_hashes
+    # Update hashes to only include existing files
+    all_hashes = {k: v for k, v in all_hashes.items() if os.path.exists(progress['image_location_map'].get(k, k))}
+
+    # Step 3: Deduplicate within posts
+    deduplicate_within_posts()
+
+    # Step 4: Remove special ads images
+    remove_special_ads_images()
+
+    # Update hashes after removals
+    all_hashes = {k: v for k, v in all_hashes.items() if os.path.exists(progress['image_location_map'].get(k, k))}
+
+    # Step 5: Deduplicate across posts
+    deduplicate_across_posts()
+
+    print("Deduplication process completed.")
+
+def main():
+    deduplication_loop()
+
+if __name__ == "__main__":
+    main()

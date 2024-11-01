@@ -2,8 +2,8 @@ import os
 import shutil
 
 # Configuration
-ROOT_DIR = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts/imgs_dedup'
-OUTPUT_DIR = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts'
+ROOT_DIR = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts_dedup/deduplicated_imgs'
+OUTPUT_DIR = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts_dedup'
 NUM_PARTS = 10
 
 def split_dataset(root_dir, output_dir, num_parts):
