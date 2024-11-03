@@ -38,6 +38,7 @@ imagehash = "^4.3.1"
 grad-cam = "^1.5.4"
 dvc = "^3.56.0"
 aiohttp = "^3.10.10"
+wandb = "^0.18.5"
 
 [build-system]
 requires = ["poetry-core"]
