@@ -1,15 +1,16 @@
 import torch
 import torchreid
-from dom_lapkin import DomLapkin13
-from dom_lapkin import DomLapkin2
+from my_datasets.dom_lapkin import DomLapkin13
 import glob
 import os
 from torchreid.data.datasets import ImageDataset
 
+results_save_dir = 'log/test_dom_lapkin2_osnet'
+model_path = '/Users/albert.bikeev/Projects/sobaken-id/re-identification/log/v0.1.60e-dl1-3/model/model.pth.tar-30'
 
 if __name__ == '__main__':
 
-    torchreid.data.register_image_dataset('animals_dataset', DomLapkin2)
+    torchreid.data.register_image_dataset('animals_dataset', DomLapkin13)
 
     # Create the data manager
     datamanager = torchreid.data.ImageDataManager(
@@ -28,12 +29,11 @@ if __name__ == '__main__':
     model = torchreid.models.build_model(
         name='osnet_x1_0',
         num_classes=datamanager.num_train_pids,  # Replace with the number of classes used during training
-        loss='softmax',
+        loss='triplet',
         pretrained=False
     )
 
     # Load the trained weights
-    model_path = '/Users/albert.bikeev/Projects/sobaken-id/re-identification/log/v0.1.60e-dl1-3/model/model.pth.tar-30'
     print(f"Evaluating model {model_path}...")
     state_dict = torch.load(model_path, map_location='cpu')
     model.load_state_dict(state_dict['state_dict'])
@@ -64,7 +64,7 @@ if __name__ == '__main__':
 
 
     # Build engine
-    engine = torchreid.engine.ImageSoftmaxEngine(
+    engine = torchreid.engine.ImageTripletEngine(
         datamanager,
         model,
         optimizer=None,
@@ -74,6 +74,6 @@ if __name__ == '__main__':
     # Run training
     engine.run(
         test_only=True,
-        save_dir='log/test_dom_lapkin2_osnet',
+        save_dir=results_save_dir,
         max_epoch=0,
     )

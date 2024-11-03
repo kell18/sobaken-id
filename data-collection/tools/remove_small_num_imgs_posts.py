@@ -5,10 +5,12 @@ from file_name_info import FileNameInfo
 # ----------------------------- Configuration -----------------------------
 
 # Path to the directory containing the images
-ROOT_DIR = '/path/to/your/images_directory'  # Update this path accordingly
+ROOT_DIR = '/Users/albert.bikeev/Projects/sobaken-id/data/segmented/vk_posts/part_3_only2_or_more_photos'  # Update this path accordingly
 
 # Minimum number of images required for a post to be retained
-MIN_IMAGES_THRESHOLD = 1  # Default is 1; change as needed
+MIN_IMAGES_THRESHOLD = 2  # Default is 1; change as needed
+
+SUPPORTED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png']
 
 # ---------------------------------------------------------------------------
 
@@ -26,7 +28,7 @@ def remove_small_num_imgs_posts(root_dir, min_images=1):
     """
     removed_count = 0
     groups = defaultdict(list)
-    all_files = os.listdir(root_dir)
+    all_files =  [f for f in os.listdir(root_dir) if any([ex for ex in SUPPORTED_IMAGE_EXTENSIONS if f.endswith(ex)])]
 
     # Group files by (GROUP_ID, POST_ID)
     for filename in all_files:

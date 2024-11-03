@@ -8,6 +8,12 @@ from torchvision import transforms
 from PIL import Image
 import shutil
 
+model_path = '/Users/albert.bikeev/Projects/sobaken-id/re-identification/log/v0.2.12e_lTrip-vk_posts3_only2_or_more_photos/model/model.pth.tar-12'
+num_classes = 496
+query_dir = '/Users/albert.bikeev/Projects/sobaken-id/data/predictions/clean_dom_lapkin_1-3/query'
+gallery_dir = '/Users/albert.bikeev/Projects/sobaken-id/data/predictions/clean_dom_lapkin_1-3/gallery'
+predictions_dir = '/Users/albert.bikeev/Projects/sobaken-id/data/predictions/clean_dom_lapkin_1-3/modelv0.2.12e_lTrip-vk_posts3_2MorePhotos_top5'
+
 # Define InferenceDataset
 class InferenceDataset(Dataset):
     def __init__(self, img_paths, transform=None):
@@ -54,33 +60,28 @@ def get_top_n(distmat, query_paths, gallery_paths, top_n=5):
         })
     return results
 
-def num_classes():
-    from dom_lapkin import DomLapkin4
-    torchreid.data.register_image_dataset('animals_dataset', DomLapkin4)
-
-    # Create the data manager
-    datamanager = torchreid.data.ImageDataManager(
-        root='/Users/albert.bikeev/Projects/sobaken-id/data/clean',
-        sources='animals_dataset',
-        height=256,
-        width=128,
-        batch_size_train=32,
-        batch_size_test=100,
-        transforms=['random_flip', 'random_crop', 'random_erase'],
-        num_instances=4,
-        train_sampler='RandomIdentitySampler',
-    )
-    print("datamanager.num_train_pids")
-    print(datamanager.num_train_pids)
-    return datamanager.num_train_pids
+# def num_classes():
+#     from dom_lapkin import DomLapkin4
+#     torchreid.data.register_image_dataset('animals_dataset', DomLapkin4)
+#
+#     # Create the data manager
+#     datamanager = torchreid.data.ImageDataManager(
+#         root='/Users/albert.bikeev/Projects/sobaken-id/data/clean',
+#         sources='animals_dataset',
+#         height=256,
+#         width=128,
+#         batch_size_train=32,
+#         batch_size_test=100,
+#         transforms=['random_flip', 'random_crop', 'random_erase'],
+#         num_instances=4,
+#         train_sampler='RandomIdentitySampler',
+#     )
+#     print("datamanager.num_train_pids")
+#     print(datamanager.num_train_pids)
+#     return datamanager.num_train_pids
 
 if __name__ == '__main__':
     # Paths to the query and gallery directories
-    model_path = '/Users/albert.bikeev/Projects/sobaken-id/re-identification/log/v0.1.12e_lTrip-dl1-3/model/model.pth.tar-12'
-
-    query_dir = '/Users/albert.bikeev/Projects/sobaken-id/data/predictions/clean_dom_lapkin_1-3/query'
-    gallery_dir = '/Users/albert.bikeev/Projects/sobaken-id/data/predictions/clean_dom_lapkin_1-3/gallery'
-    predictions_dir = '/Users/albert.bikeev/Projects/sobaken-id/data/predictions/clean_dom_lapkin_1-3/modelv0.1.12e_lTrip-dl1-3_predicted_top5'
     Path(predictions_dir).mkdir(parents=True, exist_ok=True)
 
     # Ensure the reid directory exists
@@ -94,8 +95,8 @@ if __name__ == '__main__':
     # Build the model architecture
     model = torchreid.models.build_model(
         name='osnet_x1_0',
-        num_classes=235, # 88
-        loss='softmax',
+        num_classes=num_classes,
+        loss='triplet',
         pretrained=False
     )
 
@@ -132,7 +133,7 @@ if __name__ == '__main__':
 
     # Compute distance matrix
     print("Computing distance matrix...")
-    distmat = torchreid.metrics.compute_distance_matrix(query_features, gallery_features, metric='euclidean')
+    distmat = torchreid.metrics.compute_distance_matrix(query_features, gallery_features, metric='cosine')
 
     # Retrieve top 5 matches
     top_n = 5

@@ -5,6 +5,13 @@ import random
 from tqdm import tqdm
 from PIL import Image
 
+input_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/segmented/vk_posts/part_3_only2_or_more_photos'
+output_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/clean/vk_posts/part_3_only2_or_more_photos'
+
+train_percent = 0.8
+random.seed(42)
+
+
 def process_dataset(input_dir, output_dir, target_size=(128, 256)):
     # Collect all image paths
     image_paths = glob.glob(os.path.join(input_dir, '*.jpg'))
@@ -15,14 +22,15 @@ def process_dataset(input_dir, output_dir, target_size=(128, 256)):
         filename = os.path.basename(image_path)
         base_name, ext = os.path.splitext(filename)
         if '_' in base_name:
-            post_id, image_num = base_name.split('_', 1)
+            group_id, post_id, image_num = base_name.split('_')
+            unique_post_id = group_id[3:] + '_' + post_id
         else:
             print(f"Skipping file with unexpected format: {filename}")
             continue
 
-        if post_id not in post_id_to_images:
-            post_id_to_images[post_id] = []
-        post_id_to_images[post_id].append(image_path)
+        if unique_post_id not in post_id_to_images:
+            post_id_to_images[unique_post_id] = []
+        post_id_to_images[unique_post_id].append(image_path)
 
     # Filter out post-ids with only one image
     filtered_post_ids = {pid: imgs for pid, imgs in post_id_to_images.items() if len(imgs) > 1}
@@ -32,7 +40,7 @@ def process_dataset(input_dir, output_dir, target_size=(128, 256)):
     # Split post-ids into train and test sets
     post_ids = list(filtered_post_ids.keys())
     random.shuffle(post_ids)
-    num_train = int(len(post_ids) * 0.7)  # 70% for training
+    num_train = int(len(post_ids) * train_percent)  # 70% for training
     train_ids = post_ids[:num_train]
     test_ids = post_ids[num_train:]
 
@@ -120,10 +128,5 @@ def pad_and_resize(img, target_size):
     return new_img
 
 if __name__ == '__main__':
-    input_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/segmented/segm_dom_lapkin_4__FLAT_AREA'
-    output_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/clean/clean_dom_lapkin_4'
-
-    # Set random seed for reproducibility
-    random.seed(42)
 
     process_dataset(input_directory, output_directory, target_size=(128, 256))

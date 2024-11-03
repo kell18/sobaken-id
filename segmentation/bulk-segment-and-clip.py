@@ -6,6 +6,13 @@ import numpy as np
 from tqdm import tqdm
 from pixellib.torchbackend.instance import instanceSegmentation
 
+# ----------------------- Configuration Parameters -----------------------
+
+input_directories = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts_dedup/marked_part_3'
+output_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/segmented/vk_posts/part_3_SCORE'
+model_file = '/Users/albert.bikeev/Projects/sobaken-id/trained_models/segm_PixelLib_pointrend_resnet50.pkl'
+
+# ------------------------------------------------------------------------
 
 def segment_images(input_raw_ds_path, output_segmented_ds_dir, model_path,
                    save_as_flat_files=False, best_mask_based_on_area=False):
@@ -26,7 +33,9 @@ def segment_images(input_raw_ds_path, output_segmented_ds_dir, model_path,
         filename = os.path.basename(image_path)
         base_name, ext = os.path.splitext(filename)
         if '_' in base_name:
-            post_id, image_num = base_name.split('_')
+            group_id, post_id, image_num = base_name.split('_')
+            group_id = group_id[3:]
+            group_post_id = group_id + '_' + post_id
         else:
             print(f"Skipping file with unexpected format: {filename}")
             continue
@@ -65,12 +74,12 @@ def segment_images(input_raw_ds_path, output_segmented_ds_dir, model_path,
         if save_as_flat_files:
             final_output_dir = output_segmented_ds_dir
         else:
-            final_output_dir = os.path.join(output_segmented_ds_dir, post_id)
+            final_output_dir = os.path.join(output_segmented_ds_dir, group_post_id)
             # Create the final output directory for this animal (post_id)
             os.makedirs(final_output_dir, exist_ok=True)
 
         # Save the image with a meaningful name
-        output_image_path = os.path.join(final_output_dir, f"{post_id}_{image_num}.jpg")
+        output_image_path = os.path.join(final_output_dir, f"vkg{group_post_id}_{image_num}.jpg")
         cv2.imwrite(output_image_path, masked_image)
 
     print("Segmentation and organization complete.")
@@ -132,9 +141,6 @@ def apply_mask_and_crop(image, mask):
 
 
 if __name__ == '__main__':
-    input_directories = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/raw_dom_lapkin_4'
-    output_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/segmented/segm_dom_lapkin_4__FLAT_AREA'
-    model_file = '/Users/albert.bikeev/Projects/sobaken-id/trained_models/segm_PixelLib_pointrend_resnet50.pkl'
 
     segment_images(input_directories, output_directory, model_file,
-                   save_as_flat_files=True, best_mask_based_on_area=True)
+                   save_as_flat_files=True, best_mask_based_on_area=False)
