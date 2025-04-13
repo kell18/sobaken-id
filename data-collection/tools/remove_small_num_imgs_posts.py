@@ -5,7 +5,7 @@ from file_name_info import FileNameInfo
 # ----------------------------- Configuration -----------------------------
 
 # Path to the directory containing the images
-ROOT_DIR = '/Users/albert.bikeev/Projects/sobaken-id/data/segmented/vk_posts/part_3_only2_or_more_photos'  # Update this path accordingly
+ROOT_DIR = '/Users/albert.bikeev/Projects/sobaken-id/data/segmented/vk_posts/vkg34900407plus_DEDUP_enriched'
 
 # Minimum number of images required for a post to be retained
 MIN_IMAGES_THRESHOLD = 2  # Default is 1; change as needed
@@ -14,14 +14,13 @@ SUPPORTED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png']
 
 # ---------------------------------------------------------------------------
 
-
-def remove_small_num_imgs_posts(root_dir, min_images=1):
+def remove_small_num_imgs_posts(root_dir, min_images):
     """
     Removes images belonging to posts that have only 'min_images' images.
 
     Args:
         root_dir (str): Directory containing the images.
-        min_images (int): Posts with this num of images or lower will be removed.
+        min_images (int): Posts with this num of images or lower will be removed __IF folder has delimiters then +1__.
 
     Returns:
         int: Number of images removed.
@@ -32,14 +31,13 @@ def remove_small_num_imgs_posts(root_dir, min_images=1):
 
     # Group files by (GROUP_ID, POST_ID)
     for filename in all_files:
-        filepath = os.path.join(root_dir, filename)
-        if os.path.isfile(filepath):
-            file_info = FileNameInfo.from_full_path(filepath)
-            group_id, post_id = file_info.group_id, file_info.post_id
-            if group_id and post_id:
-                groups[(group_id, post_id)].append(filename)
-            else:
-                print(f"Skipping file with unexpected format: {filename}")
+        name, ext = os.path.splitext(filename)
+        parts = name.split('_')
+        group_id, post_id = parts[0][3:], parts[1]
+        if group_id and post_id:
+            groups[(group_id, post_id)].append(filename)
+        else:
+            print(f"Skipping file with unexpected format: {filename}")
 
     print(f"\nTotal unique posts found: {len(groups)}")
 

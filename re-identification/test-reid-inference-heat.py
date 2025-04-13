@@ -168,14 +168,11 @@ def generate_and_save_activation_map(model, img_path, output_path, device, suffi
 
 
 def main():
-    base_dataset_path = '/Users/albert.bikeev/Projects/sobaken-id/data/predictions/clean_dom_lapkin_4'
-    base_model_path = '/Users/albert.bikeev/Projects/sobaken-id/re-identification/log/v0.1.60e-dl1-3'
-    num_classes = 235  # Adjust to your number of classes
+    base_dataset_path = '/Users/albert.bikeev/Projects/sobaken-id/data/predictions/clean_dom_lapkin_1-3'
+    base_model_path = '/Users/albert.bikeev/Projects/sobaken-id/re-identification/log/v0.3_vkg34900407plus'
+    num_classes = 621  # Adjust to your number of classes
     model_paths_to_names = {
-        f'{base_model_path}/model/model.pth.tar-3': 'modelv0.1.03e-dl1-3_top5-heat',
-        f'{base_model_path}/model/model.pth.tar-12': 'modelv0.1.12e-dl1-3_top5-heat',
-        f'{base_model_path}/model/model.pth.tar-30': 'modelv0.1.30e-dl1-3_top5-heat',
-        f'{base_model_path}/model/model.pth.tar-60': 'modelv0.1.60e-dl1-3_top5-heat'
+        f'{base_model_path}/model/model.pth.tar-33': 'modelv0.3_vkg34900407plus-top5-heat'
     }
     for model_path, model_name in model_paths_to_names.items():
         print(f'Generating activation maps for {model_name}...')

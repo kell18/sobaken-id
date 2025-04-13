@@ -8,8 +8,8 @@ from pixellib.torchbackend.instance import instanceSegmentation
 
 # ----------------------- Configuration Parameters -----------------------
 
-input_directories = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts_dedup/marked_part_3'
-output_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/segmented/vk_posts/part_3_SCORE'
+input_directories = '/Users/albert.bikeev/Projects/sobaken-id/data/raw/vk_posts_dedup/clustered_part_6/vkg34900407_DEDUP_catsdogs_enriched/together'
+output_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/segmented/vk_posts/vkg34900407plus_DEDUP_enriched'
 model_file = '/Users/albert.bikeev/Projects/sobaken-id/trained_models/segm_PixelLib_pointrend_resnet50.pkl'
 
 # ------------------------------------------------------------------------

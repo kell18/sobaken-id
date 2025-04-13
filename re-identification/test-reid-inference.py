@@ -8,11 +8,11 @@ from torchvision import transforms
 from PIL import Image
 import shutil
 
-model_path = '/Users/albert.bikeev/Projects/sobaken-id/re-identification/log/v0.2.12e_lTrip-vk_posts3_only2_or_more_photos/model/model.pth.tar-12'
-num_classes = 496
+model_path = '/Users/albert.bikeev/Projects/sobaken-id/re-identification/log/v0.3_vkg34900407plus/model/model.pth.tar-33'
+num_classes = 621
 query_dir = '/Users/albert.bikeev/Projects/sobaken-id/data/predictions/clean_dom_lapkin_1-3/query'
 gallery_dir = '/Users/albert.bikeev/Projects/sobaken-id/data/predictions/clean_dom_lapkin_1-3/gallery'
-predictions_dir = '/Users/albert.bikeev/Projects/sobaken-id/data/predictions/clean_dom_lapkin_1-3/modelv0.2.12e_lTrip-vk_posts3_2MorePhotos_top5'
+predictions_dir = '/Users/albert.bikeev/Projects/sobaken-id/data/predictions/clean_dom_lapkin_1-3/modelv0.3_vkg34900407plus'
 
 # Define InferenceDataset
 class InferenceDataset(Dataset):

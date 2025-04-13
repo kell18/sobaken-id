@@ -1,16 +1,16 @@
 import torch
 import torchreid
 from torchreid.engine import ImageTripletEngine, ImageSoftmaxEngine
-from my_datasets.vk_posts_3 import VkPosts3
+from my_datasets.vkg34900407plus import Vkg34900407plus
 import wandb
 
-training_model_version = '0.2_vkp3_only2_or_more_photos_test'
+training_model_version = '0.3_vkg34900407plus'
 
 if __name__ == '__main__':
     run = wandb.init(project="sobaken-id", name=f'train_reid_v{training_model_version}',
                      settings=wandb.Settings(_disable_stats=True, _disable_meta=True))
 
-    dataset = VkPosts3
+    dataset = Vkg34900407plus
     save_dir = f'log/v{training_model_version}'
 
     config = run.config

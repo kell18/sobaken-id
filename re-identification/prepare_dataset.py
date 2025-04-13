@@ -5,11 +5,11 @@ import random
 from tqdm import tqdm
 from PIL import Image
 
-input_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/segmented/vk_posts/part_3_only2_or_more_photos'
-output_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/clean/vk_posts/part_3_only2_or_more_photos'
+input_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/segmented/vk_posts/vkg34900407plus_DEDUP_enriched'
+output_directory = '/Users/albert.bikeev/Projects/sobaken-id/data/clean/vkg34900407plus_DEDUP_enriched1'
 
 train_percent = 0.8
-random.seed(42)
+random.seed(43)
 
 
 def process_dataset(input_dir, output_dir, target_size=(128, 256)):
