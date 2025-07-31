@@ -1,18 +1,18 @@
 # Sobaken-ID
-Цель проекта попробовать сделать Computer Vision сервис для поиска пропавших животных на просторах интернета.  
+The goal of the project is to try to create a computer vision service for searching for lost animals on the Internet. 
 
-## Проблема
-- На простом человеческом: "поиск животных по отличительным особенностям: размер, цвет, паттерн на шерсти, отрезано ухо, сломан хвост, ошейник и так далее. С поправкой на погоду/освещение/состояние животного/грязь на шерсти/лишние объекты на фотке."
-- С технической точки зрения, так как это поиск то возможно подойдёт word2vec подход (или точнее img2vec). То есть, например, строим базу векторов доступных животных в БД (id животного -> вектор из последнего слоя модели + доп фичи) и для каждого нового животного генерируем тот же самый вектор от той же модели и ищем по базе.
+## Problem
+- In simple human terms: “searching for animals by distinctive features: size, color, coat pattern, cropped ear, broken tail, collar, and so on. Adjusted for weather/lighting/animal condition/dirt on the coat/extraneous objects in the photo.”
+- From a technical point of view, since this is a search, the word2vec approach (or more precisely, img2vec) may be suitable. That is, for example, we build a database of vectors of available animals (animal ID -> vector from the last layer of the model + additional features) and for each new animal we generate the same vector from the same model and search the database.
 
 <details>
-  <summary>Особенности</summary>
-1. Ложно отрицательные результаты критичны. Плохо если из выборки пропадает целевое животное. С другой стороны если мы выдаём больше ложно положительных то человек может сам доискать животное (в разумных количествах и отсортированных по уменьшению схожести).
-2. На первых этапах важнее сфокусироваться на собаках - их намного сложнее пристраивать, лечить, передерживать и так далее.
+  <summary>Features</summary>
+1. False negative results are critical. It is bad if the target animal disappears from the sample. On the other hand, if we produce more false positives, the person can find the animal themselves (in reasonable quantities and sorted by decreasing similarity).
+2. In the early stages, it is more important to focus on dogs — they are much more difficult to rehome, treat, overstay, and so on.
 </details>
 
-# Первые результаты
-На скринах в первой колонке фото-запрос, остальные 5 колонок это то что модель подобрала как наиболее подходящее из примерно 500 фоток животных которых **модель не видела на тренировке** (1000 фото - train, 500 - test). Фотографии автоматически сегментированны (вырезан весь фон).  
+# Initial results
+The screenshots in the first column show the photo request, while the remaining five columns show what the model selected as the most suitable from approximately 500 photos of animals that the model did not see during training (1,000 photos - train, 500 - test). The photos are automatically segmented (the entire background is cropped).
 
 1.
 <img width="1594" alt="Screenshot 2024-10-24 at 11 54 51" src="https://github.com/user-attachments/assets/9b33d7c0-047b-4e57-b3ac-160e4ed9d80c">
@@ -22,18 +22,17 @@
 <img width="1715" alt="Screenshot 2024-10-24 at 11 57 32" src="https://github.com/user-attachments/assets/222d39be-dd5c-4e4e-9889-f0f0238a868f">
 
 
+And that's considering a very small dataset of 1,000 photos; we are currently preparing a dataset of 60,000 photos.
 
-**И это учитывая очень маленький датасет в 1000 фотографий**! Сейчас мы готовим датасет из 60 тысяч фотографий.
-
-### Как это работает
-- Как это устроенно внутри - пример карты температур показывает "куда смотрит модель" при генерации векторов схожести:
+### How it works
+- How it works internally - an example of a temperature map shows “where the model is looking” when generating similarity vectors:
 - <img width="1719" alt="heat" src="https://github.com/user-attachments/assets/33f55772-c99d-4837-9555-d8035cda01e2">
 
 
-### Как запустить локально
-- установить Poetry
-- `poetry shell` из рута проекта
-- Скачать данные, настроить пути до них в нужном файле и запустить
+### How to run locally
+- Install Poetry
+- `poetry shell` from the project root
+- Download the data, configure the paths to it in the appropriate file, and run
 
-# Контакты
-Мой Телеграм [@kella18](https://t.me/kella18)
+# Contacts
+My Telegram [@kella18](https://t.me/kella18)
